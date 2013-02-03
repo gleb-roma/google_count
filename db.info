@@ -1,0 +1,22 @@
+mysql -uroot -pchairman google_counts
+
+select distinct lang from gblogs_counts_as order by lang;
+
+
+select distinct name from people_names where id=953;
+
+select distinct people_names.name,people_names.id,gnews_counts.lang from gnews_counts,people_names where gnews_counts.name_id=people_names.id and gnews_counts.lang='en_my';
+
+select distinct name_id from gnews_counts where lang='no_no' and count>0;
+
+#########   OUTPUTTING
+
+INSERT IGNORE INTO temp_counts SELECT b.name_id,b.week,b.lang,n.count,b.count FROM gblogs_counts AS b LEFT JOIN gnews_counts AS n ON n.lang=b.lang AND n.name_id=b.name_id AND n.week=b.week WHERE b.lang='it';
+
+INSERT IGNORE INTO temp_counts SELECT b.name_id,b.week,b.lang,n.count,b.count from gblogs_counts AS b RIGHT JOIN gnews_counts AS n ON n.lang=b.lang AND n.name_id=b.name_id AND n.week=b.week WHERE n.lang='it'
+
+SELECT * INTO OUTFILE '/tmp/iii' FROM temp_counts;
+
+TRUNCATE TABLE temp_counts;
+
+

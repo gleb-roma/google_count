@@ -39,7 +39,7 @@ while (my @row = $sth->fetchrow_array()) {
 $sth->finish();
 $dbh->disconnect();
 
-say "Language\tName_id\t".join("\t",1..52);
+say "Country\tName_id\t".join("\t",1..52);
 foreach my $lang (keys %data) {
 	foreach my $id (keys %{$data{$lang}}) {
 		my @a = '.' x 52;

@@ -1,0 +1,5 @@
+SECS_BETWEEN_REQUESTS	3
+SECONDS_BETWEEN_FAILED_GET_ATTEMTS	5
+SECS_AFTER_PROXY_SWITCH	25
+# entry 'no_proxy' appears in the proxy list every $NO_PROXY_FREQ entries
+NO_PROXY_FREQ	0   

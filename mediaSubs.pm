@@ -3,6 +3,7 @@ use strict;
 use vars qw(@ISA @EXPORT);
 use Exporter;
 #use LWP::UserAgent;
+use Data::Dumper;
 use WWW::Mechanize;
 use Encode;
 use DBD::mysql;
@@ -13,36 +14,50 @@ use Term::ANSIColor qw(:constants);
 use POSIX qw/mktime ceil/;
 use Fcntl qw(:flock :DEFAULT);
 use Switch;
+use Config::General;
 #use File::Temp qw/ tempfile tempdir /;
 @ISA = qw(Exporter);
 @EXPORT = qw(fetchUrl retrieve_all fetchUrl_mech fetchUrl_mech_1 retrieve_all_mech next_proxy is_under_proxy exists_person connect_to_DB close_proxies %tags);
 
+########### CONSTANTS ##########
+
+# Default values for URL request constants, will be substituted from the config file request.conf
+#my $SECS_BETWEEN_REQUESTS = 3;
+#my $SECONDS_BETWEEN_FAILED_GET_ATTEMTS = 5;
+#my $SECS_AFTER_PROXY_SWITCH = 15;
+#my $NO_PROXY_FREQ = 4;   # entry 'no_proxy' appears in the proxy list every $NO_PROXY_FREQ entries
+
+
+############## VARS ##############
 my $mech;
+my %conf;  # URL requests configs
 my $under_proxy = 0;
-my $SECS_BETWEEN_REQUESTS = 3;
-my $SECONDS_BETWEEN_FAILED_GET_ATTEMTS = 5;
-my $SECS_AFTER_PROXY_SWITCH = 15;
-my $NO_PROXY_FREQ = 4;   # entry 'no_proxy' appears in the proxy list every $NO_PROXY_FREQ entries
+
+################## SUBS #############
 
 sub download_proxies_list
 {
 	`rm -f .proxies`;
-	`curl -s "http://vpn.hidemyass.com/vpnconfig/countries.php" >>.proxies`;
-	# now I will insert no_proxy after every two entries in the file
-	open(FIN, "<.proxies") or die "Could not open .proxies!";
-	my @pp = <FIN>;
-	close(FIN);
-	open(FIN, ">.proxies") or die "Could not open .proxies!";
-	my $i = 0;
-	foreach my $p (@pp) {
-		if ($i==$NO_PROXY_FREQ) {
-			print FIN "no_proxy\n";
-			$i=0;
+	if ($conf{NO_PROXY_FREQ}) {
+		`curl -s "http://vpn.hidemyass.com/vpnconfig/countries.php" >.proxies`;
+		# now I will insert no_proxy after every two entries in the file
+		open(FIN, "<.proxies") or die "Could not open .proxies!";
+		my @pp = <FIN>;
+		close(FIN);
+		open(FIN, ">.proxies") or die "Could not open .proxies!";
+		my $i = 0;
+		foreach my $p (@pp) {
+			if ($i>=$conf{NO_PROXY_FREQ}) {
+				print FIN "no_proxy\n";
+				$i=0;
+			}
+			$i++;
+			print FIN $p;	
 		}
-		$i++;
-		print FIN $p;	
+		close(FIN);
+	} else {
+		`echo 'no_proxy' >.proxies`	
 	}
-	close(FIN);
 }
 sub download_proxies_list_old
 {
@@ -65,7 +80,7 @@ sub set_proxy
 		exit;
 	}
 	print STDERR "New child's pid is $pid\n";
-	sleep $SECS_AFTER_PROXY_SWITCH;  # give time to switch the proxy for the child
+
 }
 
 sub close_proxies
@@ -77,6 +92,8 @@ sub close_proxies
 
 sub next_proxy
 {
+	close_proxies(); # terminate previous connection to proxy
+	sleep 5;  # give time to terminate openvpn
 	if (not -e ".proxies" or -z ".proxies") { 
 #	if (not -e ".proxies" or -z ".proxies" or -A ".proxies" > .4) { 
 	# update proxies list if the file doesn't exist or is empty or is old (try to use no_proxy as often as possible
@@ -89,11 +106,9 @@ sub next_proxy
 	my $proxy = <FIN>;
 	chomp $proxy;
 	close(FIN);
-	close_proxies(); # terminate previous connection to proxy
-	sleep 5;  # give time to terminate openvpn
 	# Set up a new connection: 
 	if ($proxy eq 'no_proxy') {
-		print STDERR "Switching to ", BOLD, YELLOW, "no proxy", RESET, "\n";
+		print STDERR "Switched to ", BOLD, YELLOW, "no proxy", RESET, "\n";
 		$under_proxy = 0;
 	} else {
 		print STDERR "Switching to proxy ", BOLD, YELLOW, "$proxy", RESET, "\n";
@@ -106,7 +121,14 @@ sub next_proxy
 	flock(FIL,LOCK_EX) or die 'flock: ';
 	`sed -n 2,100p .proxies >.tmpproxies; cat .tmpproxies >.proxies; rm .tmpproxies`;
 	close(FIL);
-
+	# give time to switch the proxy for the child and possible wait until Google calms down
+	my $full_minutes = int($conf{SECS_AFTER_PROXY_SWITCH}/60);
+	say STDERR "Waiting $full_minutes minutes+";
+	for my $i (1..$full_minutes) {
+		say STDERR "Waiting minute $i...";
+		sleep 60;
+	}
+	sleep $conf{SECS_AFTER_PROXY_SWITCH}-60*$full_minutes;
 }
 
 sub is_under_proxy
@@ -166,7 +188,7 @@ sub fetchUrl
 		print STDERR color 'reset';
 		last if not $err;
 		$att++;
-		sleep $SECONDS_BETWEEN_FAILED_GET_ATTEMTS;
+		sleep $conf{SECONDS_BETWEEN_FAILED_GET_ATTEMTS};
 		say STDERR "\a$att attempts failed! ".$mech->res->status_line." $url";
 	}
 
@@ -196,6 +218,11 @@ sub retrieve_all_mech
 		close(FIN);
 	}
 	chomp @people;
+	
+
+	my $CG = new Config::General("request.conf");
+	%conf = $CG->getall();
+	say Dumper(%conf);
 
 	$mech = WWW::Mechanize->new(onerror => undef);
 	$mech->timeout(30);
@@ -233,8 +260,7 @@ sub retrieve_all_mech
 					last;
 				}
 			}
-			#usleep(100000); # microseconds, 0.1 seconds
-			sleep $SECS_BETWEEN_REQUESTS;
+			sleep $conf{SECS_BETWEEN_REQUESTS};
 		}
 		if (not $small_count or $zero_counts) {
 			say join("\t",$p, @{$data{$p}}); # OUTPUT

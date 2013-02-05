@@ -328,6 +328,8 @@ our %tags = (  # Imil (Bing) => Google
 		py	=> 'es_py',
 		uy	=> 'es_uy',
 		ve	=> 'es_ve',
+
+		pt	=> 'pt-PT_pt',
 		);
 
 

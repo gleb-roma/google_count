@@ -333,6 +333,8 @@ our %tags = (  # Imil (Bing) => Google
 		ve	=> 'es_ve',
 
 		pt	=> 'pt-PT_pt',
+		br	=> 'pt-BR_br',
+		tr	=> 'tr',
 
 		);
 

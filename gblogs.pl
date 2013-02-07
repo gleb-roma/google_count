@@ -34,11 +34,12 @@ sub format_date   ## in Google Blogs. The reason is that Google expects American
 	
 	# Specify Bing's (Imil's) not Google's language tags below
 	my @ru  = qw/ru no cz at de fr hr id ch/;
-	my @eur = qw/it ar cl co es dk bo ec mx pe py uy ve pt/; 
+	my @eur = qw/it ar cl co es dk bo ec mx pe py uy ve pt br/; 
 	my @us  = qw/us gb in my/;
 	my @za	= qw/za/;
 	my @sv	= qw/se/;
 	my @nl	= qw/nl/;
+	my @tr	= qw/tr/;
 	my @f = ();
 	my $delim = '/';
 	switch ($lang) {
@@ -48,6 +49,7 @@ sub format_date   ## in Google Blogs. The reason is that Google expects American
 		case (\@za)		{ @f = ($y,$m,$d); $delim='/' }
 		case (\@sv)		{ @f = ($y,$m,$d); $delim='-' }
 		case (\@nl)		{ @f = ($d,$m,$y); $delim='-' }
+		case (\@tr)		{ @f = ($d,$m,$y); $delim='+' }
 		else			{ return 0 }
 	}
 	if (defined $delim) {

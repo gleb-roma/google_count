@@ -37,6 +37,8 @@ sub format_date   ## in Google Blogs. The reason is that Google expects American
 	my @eur = qw/it ar cl co es dk bo ec mx pe py uy ve pt/; 
 	my @us  = qw/us gb in my/;
 	my @za	= qw/za/;
+	my @sv	= qw/se/;
+	my @nl	= qw/nl/;
 	my @f = ();
 	my $delim = '/';
 	switch ($lang) {
@@ -44,6 +46,8 @@ sub format_date   ## in Google Blogs. The reason is that Google expects American
 		case (\@eur)	{ @f = ($d,$m,$y); $delim='/' }
 		case (\@us)		{ @f = ($m,$d,$y); $delim='/' }
 		case (\@za)		{ @f = ($y,$m,$d); $delim='/' }
+		case (\@sv)		{ @f = ($y,$m,$d); $delim='-' }
+		case (\@nl)		{ @f = ($d,$m,$y); $delim='-' }
 		else			{ return 0 }
 	}
 	if (defined $delim) {

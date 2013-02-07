@@ -18,4 +18,6 @@ File request.conf should contain configuration variables. NO_PROXY_FREQ equals z
 
 The lists with people names are taken from ./lists/
 
+Parallelization info at ~/Dropbox/Online\ Offline\ Indices\ Gleb/parallel
+
 

@@ -327,9 +327,13 @@ our %tags = (  # Imil (Bing) => Google
 		pe	=> 'es_pe',
 		py	=> 'es_py',
 		uy	=> 'es_uy',
+		se	=> 'sv_se',
+		nl	=> 'nl',
+
 		ve	=> 'es_ve',
 
 		pt	=> 'pt-PT_pt',
+
 		);
 
 

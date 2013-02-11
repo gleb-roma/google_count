@@ -164,7 +164,7 @@ sub fetchUrl
 			
 	my $att=0;
 	while (1) {
-		if ($att >= 3) {
+		if ($att >= $conf{N_FETCH_URL_ATTEMPTS}) {
 			say STDERR "IP banned, $url. Changing proxy\a";
 			next_proxy();
 			$att=0;
@@ -331,8 +331,12 @@ our %tags = (  # Imil (Bing) => Google
 		nl	=> 'nl',
 
 		ve	=> 'es_ve',
+		jp	=> 'ja_jp',
+		ro	=> 'ro',
 
 		pt	=> 'pt-PT_pt',
+		br	=> 'pt-BR_br',
+		tr	=> 'tr',
 
 		);
 

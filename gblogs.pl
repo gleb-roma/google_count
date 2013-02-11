@@ -34,11 +34,7 @@ sub format_date   ## in Google Blogs. The reason is that Google expects American
 	
 	# Specify Bing's (Imil's) not Google's language tags below
 	my @ru  = qw/ru no cz at de fr hr id ch/;
-<<<<<<< HEAD
 	my @eur = qw/it ar cl co es dk bo ec mx pe py uy ve pt br ro/; 
-=======
-	my @eur = qw/it ar cl co es dk bo ec mx pe py uy ve pt br/; 
->>>>>>> 79b3c12dc9acfeba07c7e1785f2bc86ac6614bc7
 	my @us  = qw/us gb in my/;
 	my @za	= qw/za jp/;
 	my @sv	= qw/se/;

@@ -17,7 +17,7 @@ use Switch;
 use Config::General;
 #use File::Temp qw/ tempfile tempdir /;
 @ISA = qw(Exporter);
-@EXPORT = qw(fetchUrl retrieve_all fetchUrl_mech fetchUrl_mech_1 retrieve_all_mech next_proxy is_under_proxy exists_person connect_to_DB close_proxies %tags);
+@EXPORT = qw(fetchUrl retrieve_all fetchUrl_mech fetchUrl_mech_1 retrieve_all_mech next_proxy is_under_proxy exists_person connect_to_DB close_proxies %tags format_date);
 
 ########### CONSTANTS ##########
 
@@ -213,9 +213,13 @@ sub retrieve_all_mech
 		@people = <>;
 	} else {	
 		say STDERR "Reading the list of people form $tmpfile";
-		open(FIN, "<$tmpfile") or die "Cannot open $tmpfile";
-		@people = <FIN>;
-		close(FIN);
+		if (open(FIN, "<$tmpfile")) {
+			@people = <FIN>;
+			close(FIN);
+		} else {
+			print STDERR "", RED, "CANNOT OPEN $tmpfile, READ THE INPUT\n", RESET;
+			@people = <>;
+		}
 	}
 	chomp @people;
 	
@@ -274,30 +278,6 @@ sub retrieve_all_mech
 	unlink $tmpfile or warn "Could not unlink $tmpfile";
 	close_proxies();
 }
-
-#
-#sub format_date
-#{
-#	my ($d,$m,$y,$lang) = @_;
-#	
-#	# Specify Bing's (Imil's) not Google's language tags below
-#	my @ru  = qw/ru no cz at de fr/;
-#	my @eur = qw/uk my it en_in gb ar cl es_co es/;
-#	my @us  = qw/us/;
-#	my @f = ();
-#	my $delim = '/';
-#	switch ($lang) {
-#		case (\@ru)		{ @f = ($d,$m,$y); $delim='.' }
-#		case (\@eur)	{ @f = ($d,$m,$y); $delim='/' }
-#		case (\@us)		{ @f = ($m,$d,$y); $delim='/' }
-#		else			{ return 0 }
-#	}
-#	if (defined $delim) {
-#		return join($delim,@f);
-#	} else {
-#		return @f;
-#	}
-#}
 
 our %tags = (  # Imil (Bing) => Google
 		gb	=> 'en_uk',

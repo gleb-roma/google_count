@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # на входе строчки с людьми, аргумент l - язык, r - перезаписывать ли счётчики в gblogs_counts при повторах, c - указать, чтобы продолжить после остановки. В этом случае со входа ничего не читается. 
-# На выходе строчки Имя+Фамилия и упоминания через таб в хронологическом порядке. Также всё пишется в таблицы people_names и gnews_counts
+# На выходе строчки Имя+Фамилия и упоминания через таб в хронологическом порядке. Также всё пишется в таблицы MySQL
 # NB Еще на STDOUT выводиться какая-то хрень от openvpn
 # Результаты из Google Blogs Archive
 
@@ -9,7 +9,7 @@ use feature 'say';
 #use Data::Dumper;
 use DBD::mysql;
 use DBI;
-use mediaSubs qw(fetchUrl retrieve_all_mech connect_to_DB close_proxies exists_person %tags);
+use mediaSubs qw(fetchUrl retrieve_all_mech connect_to_DB close_proxies exists_person %tags format_date);
 use Getopt::Std;
 use POSIX qw/mktime ceil/;
 use Switch;
@@ -77,9 +77,10 @@ sub getFreq
 #EXAMPLE:	https://www.google.com/search?hl=en&as_q=denise+dumas&as_epq=&as_oq=&as_eq=&as_nlo=&as_nhi=&lr=lang_es&cr=countryAR&as_qdr=all&as_sitesearch=&as_occt=any&safe=images&tbs=lr:lang_1es,ctr:countryAR,cdr:1,cd_min:11/12/2012,cd_max:11/19/2012&as_filetype=&as_rights=
 	#EXAMPLE: https://www.google.com/search?hl=en&as_q=Rihanna&as_epq=&as_oq=&as_eq=&as_nlo=&as_nhi=&lr=lang_es&cr=countryAR&as_qdr=all&as_sitesearch=&as_occt=any&safe=images&tbs=&as_filetype=&as_rights=
 	#EXAMPLE: http://www.google.com/search?hl=es&as_q=Rihanna&lr=lang_es&cr=countryAR&as_qdr=all&as_occt=any&safe=images&tbs=cdr:1,cd_min:5/5/2012,cd_max:12/5/2012&as_rights=
-	print STDERR "$0\t";
-	print STDERR colored($l, 'green'), "\t";
-	print STDERR "$url\n";   # name of the running script + url
+	print STDERR "$0\t", GREEN, "$l\t", RESET, "$url\n";   # name of the running script + url
+#	print STDERR "$0\t";
+#	print STDERR colored($l, 'green'), "\t";
+#	print STDERR "$url\n";   # name of the running script + url
 	my $html = fetchUrl($url);
 
 	if (not $html =~ /id=resultStats>(.+?)<nobr>/i) { return 0 }
@@ -125,7 +126,7 @@ sub store_in_DB
 	$dbh->disconnect();
 }
 
-sub exists_record  ## return the person's id if it exists in the names table AND if there is a record in gnews_counts table
+sub exists_record  ## return the person's id if it exists in the names table AND if there is a record in gblogs_counts table
 {
 	my $p = shift;
 	my $lang = shift;

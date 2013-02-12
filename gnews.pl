@@ -1,45 +1,62 @@
 #!/usr/bin/perl -w
-# на входе строчки с людьми, аргумент l - язык, r - перезаписывать ли счётчики в gnews_counts при повторах, c - указать, чтобы продолжить после остановки. В этом случае со входа ничего не читается. 
-# На выходе строчки Имя+Фамилия и упоминания через таб в хронологическом порядке. Также всё пишется в таблицы people_names и gnews_counts
+# на входе строчки с людьми, аргумент l - язык, r - перезаписывать ли счётчики в gblogs_counts при повторах, c - указать, чтобы продолжить после остановки. В этом случае со входа ничего не читается. 
+# На выходе строчки Имя+Фамилия и упоминания через таб в хронологическом порядке. Также всё пишется в таблицы MySQL
 # NB Еще на STDOUT выводиться какая-то хрень от openvpn
-# Результаты из Google News Archive
+# Результаты из Google News
 
 use strict;
 use feature 'say';
 #use Data::Dumper;
 use DBD::mysql;
 use DBI;
-use mediaSubs qw(fetchUrl retrieve_all_mech connect_to_DB close_proxies format_date exists_person);
+use mediaSubs qw(fetchUrl retrieve_all_mech connect_to_DB close_proxies exists_person %tags format_date);
 use Getopt::Std;
 use POSIX qw/mktime ceil/;
+use Switch;
+use Term::ANSIColor;
+use Term::ANSIColor qw(:constants);
 
 ############### VARS ##########################
-my $DB_TABLE = 'gnews_counts'; # name of the table where the results are going to be stored
+#my $DB_TABLE = 'gnews_counts'; # name of the table where the results are going to be stored
+my $DB_TABLE = 'gnews_counts_lr'; # name of the table where the results are going to be stored
 
 
 ############### SUBS ##########################
 END {
+	my $ec = $?;
 	close_proxies(); 
+	$? = $ec;
 }
 
-sub getFreq_us
+sub format_date   ## in Google News. The reason is that Google expects American format for all English speaking regions for Google Blogs requests
 {
-	my ($text,$d0,$m0,$y0,$d1,$m1,$y1,$l) = @_;
-	my $url = "http://www.google.com/search?hl=en&gl=us&tbm=nws&q=$text&sa=X&source=lnt&tbs=sbd:1,nsd:1,cd_min:$m0/$d0/$y0,cd_max:$m1/$d1/$y1";
-	print STDERR $url."\n";
-	my $html = fetchUrl($url);
-
-	$html =~ /id=resultStats>\s*(About)?\s*([\d,]+)\s+result/i;
-	return 0 unless defined $2;
-	my $n=$2;
-	$n =~ s/,//g;   # udalit zapyatuyu kak razdelitel razryadov
-	if (not defined $n) {
-		open(FOUT, ">dump.html");
-		print FOUT $html;
-		close(FOUT);
-		return -1;
+	my ($d,$m,$y,$lang) = @_;
+	
+	# Specify Bing's (Imil's) not Google's language tags below
+	my @ru  = qw/ru no cz at de fr hr id ch/;
+	my @eur = qw/it ar cl co es dk bo ec mx pe py uy ve pt br ro in/; 
+	my @us  = qw/us gb my/;
+	my @za	= qw/za jp/;
+	my @sv	= qw/se/;
+	my @nl	= qw/nl/;
+	my @tr	= qw/tr/;
+	my @f = ();
+	my $delim = '/';
+	switch ($lang) {
+		case (\@ru)		{ @f = ($d,$m,$y); $delim='.' }
+		case (\@eur)	{ @f = ($d,$m,$y); $delim='/' }
+		case (\@us)		{ @f = ($m,$d,$y); $delim='/' }
+		case (\@za)		{ @f = ($y,$m,$d); $delim='/' }
+		case (\@sv)		{ @f = ($y,$m,$d); $delim='-' }
+		case (\@nl)		{ @f = ($d,$m,$y); $delim='-' }
+		case (\@tr)		{ @f = ($d,$m,$y); $delim='+' }
+		else			{ return 0 }
 	}
-	return $n;
+	if (defined $delim) {
+		return join($delim,@f);
+	} else {
+		return @f;
+	}
 }
 
 sub getFreq
@@ -52,18 +69,21 @@ sub getFreq
 		return -1;
 	}
 	my $date_to = format_date($d1,$m1,$y1,$l);
-	my ($hl,$gl) = split '_',$l;
+	my ($hl,$gl) = split '_',$tags{$l};
 	$gl = $hl unless defined $gl;
-	my $url = "http://www.google.com/search?hl=$hl&gl=$gl&tbm=nws&q=$text&sa=X&source=lnt&tbs=cdr:1,cd_min:$date_from,cd_max:$date_to";  # cdr:1 - sorted by relevance
-#	print STDERR $url."\n";
-	print STDERR "$0\t$url\n";   # name of the running script + url
+	my $url = "http://www.google.com/search?hl=$hl&gl=$gl&tbm=nws&q=$text&sa=X&source=lnt&tbs=cdr:1,cd_min:$date_from,cd_max:$date_to&lr=lang_$hl";  # cdr:1 - sorted by relevance
+#	my $url = "http://www.google.com/search?hl=$hl&gl=$gl&tbm=nws&q=$text&sa=X&source=lnt&tbs=cdr:1,cd_min:$date_from,cd_max:$date_to";  # cdr:1 - sorted by relevance
+	print STDERR "$0\t", GREEN, "$l\t", RESET, "$url\n";   # name of the running script + url
 	my $html = fetchUrl($url);
 
-	$html =~ /id=resultStats>\D*([\d,.]+)\D*<nobr>/i;
+	if (not $html =~ /id=resultStats>(.+?)<nobr>/i) { return 0 }
+	my $chunk = $1;
+	$chunk =~ s/&#160;//g;
+	$chunk =~ /\D*([\d,.]+)\D*/i;
 	return 0 unless defined $1;
 	my $n=$1;
 	$n =~ s/[,\.]//g;   # udalit zapyatuyu i tochku kak razdelitel razryadov
-	if (not defined $n) {
+	if (not defined $n or not ($n =~ /^\d+$/)) {
 		open(FOUT, ">dump.html");
 		print FOUT $html;
 		close(FOUT);
@@ -139,7 +159,7 @@ die unless defined $opt{l};
 # if option c is set, goes to the temp file, if not, starts from the scratch
 # if z is set, the person is added into the db even he has all zero counts. It is to track the people who were processed
 $SIG{INT} = sub { close_proxies(); exit 0 };
-retrieve_all_mech(\%opt, ".".$opt{l}."_people.tmp",\&getFreq,\&store_in_DB,\&exists_record);
+retrieve_all_mech(\%opt, ".newsp.".$opt{l}."_people.tmp",\&getFreq,\&store_in_DB,\&exists_record);
 
 #my $week = 2;   
 #say generate_link($opt{l},'Алексей+Навальный',$week);

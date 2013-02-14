@@ -9,7 +9,7 @@ use feature 'say';
 #use Data::Dumper;
 use DBD::mysql;
 use DBI;
-use mediaSubs qw(fetchUrl retrieve_all_mech connect_to_DB close_proxies exists_person %tags format_date);
+use mediaSubs qw(fetchUrl retrieve_all_mech connect_to_DB close_proxies exists_person %tags);
 use Getopt::Std;
 use POSIX qw/mktime ceil/;
 use Switch;

@@ -17,7 +17,7 @@ use Switch;
 use Config::General;
 #use File::Temp qw/ tempfile tempdir /;
 @ISA = qw(Exporter);
-@EXPORT = qw(fetchUrl retrieve_all fetchUrl_mech fetchUrl_mech_1 retrieve_all_mech next_proxy is_under_proxy exists_person connect_to_DB close_proxies %tags format_date);
+@EXPORT = qw(fetchUrl retrieve_all fetchUrl_mech fetchUrl_mech_1 retrieve_all_mech next_proxy is_under_proxy exists_person connect_to_DB close_proxies %tags);
 
 ########### CONSTANTS ##########
 
@@ -169,7 +169,9 @@ sub fetchUrl
 			next_proxy();
 			$att=0;
 		}
+		print STDERR "", GREEN, "Before mech->get\n", RESET;
 		$mech->get($url);
+		print STDERR "", GREEN, "After mech->get\n", RESET;
 		my $err=0;
 		print STDERR color 'bold blue';
 		if ( not $mech->success ) {
@@ -188,8 +190,8 @@ sub fetchUrl
 		print STDERR color 'reset';
 		last if not $err;
 		$att++;
-		sleep $conf{SECONDS_BETWEEN_FAILED_GET_ATTEMTS};
 		say STDERR "\a$att attempts failed! ".$mech->res->status_line." $url";
+		sleep $conf{SECONDS_BETWEEN_FAILED_GET_ATTEMTS};
 	}
 
 	return $mech->content;
@@ -231,6 +233,7 @@ sub retrieve_all_mech
 	$mech = WWW::Mechanize->new(onerror => undef);
 	$mech->timeout(30);
 	$mech->agent('Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:13.0) Gecko/20100101 Firefox/13.0');
+	next_proxy();
 	
 	my %data = ();
 	$|++;

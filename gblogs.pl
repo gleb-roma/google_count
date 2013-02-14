@@ -9,7 +9,7 @@ use feature 'say';
 #use Data::Dumper;
 use DBD::mysql;
 use DBI;
-use mediaSubs qw(fetchUrl retrieve_all_mech connect_to_DB close_proxies exists_person %tags format_date);
+use mediaSubs qw(fetchUrl retrieve_all_mech connect_to_DB close_proxies exists_person %tags);
 use Getopt::Std;
 use POSIX qw/mktime ceil/;
 use Switch;
@@ -78,16 +78,31 @@ sub getFreq
 	#EXAMPLE: https://www.google.com/search?hl=en&as_q=Rihanna&as_epq=&as_oq=&as_eq=&as_nlo=&as_nhi=&lr=lang_es&cr=countryAR&as_qdr=all&as_sitesearch=&as_occt=any&safe=images&tbs=&as_filetype=&as_rights=
 	#EXAMPLE: http://www.google.com/search?hl=es&as_q=Rihanna&lr=lang_es&cr=countryAR&as_qdr=all&as_occt=any&safe=images&tbs=cdr:1,cd_min:5/5/2012,cd_max:12/5/2012&as_rights=
 	print STDERR "$0\t", GREEN, "$l\t", RESET, "$url\n";   # name of the running script + url
-#	print STDERR "$0\t";
-#	print STDERR colored($l, 'green'), "\t";
-#	print STDERR "$url\n";   # name of the running script + url
 	my $html = fetchUrl($url);
+	print STDERR "", GREEN, "URL fetched\n", RESET;
 
-	if (not $html =~ /id=resultStats>(.+?)<nobr>/i) { return 0 }
+	if (not $html =~ /input\s+id=gbqfq/i) {  # there is a query input field
+		open(FOUT, ">dump.html");
+		print FOUT $html;
+		close(FOUT);
+		return -1;
+	}
+	if (not $html =~ /id=resultStats>(.+?)<nobr>/i) { 
+		open(FOUT, ">dump.html");
+		print FOUT $html;
+		close(FOUT);
+		return 0;
+	}
+
 	my $chunk = $1;
 	$chunk =~ s/&#160;//g;
 	$chunk =~ /\D*([\d,.]+)\D*/i;
-	return 0 unless defined $1;
+	if (not defined $1) {
+		open(FOUT, ">dump.html");
+		print FOUT $html;
+		close(FOUT);
+		return 0;
+	}
 	my $n=$1;
 	$n =~ s/[,\.]//g;   # udalit zapyatuyu i tochku kak razdelitel razryadov
 	if (not defined $n or not ($n =~ /^\d+$/)) {

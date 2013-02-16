@@ -169,9 +169,9 @@ sub fetchUrl
 			next_proxy();
 			$att=0;
 		}
-		print STDERR "", GREEN, "Before mech->get\n", RESET;
+#		print STDERR "", GREEN, "Before mech->get\n", RESET;
 		$mech->get($url);
-		print STDERR "", GREEN, "After mech->get\n", RESET;
+#		print STDERR "", GREEN, "After mech->get\n", RESET;
 		my $err=0;
 		print STDERR color 'bold blue';
 		if ( not $mech->success ) {
@@ -230,8 +230,12 @@ sub retrieve_all_mech
 	%conf = $CG->getall();
 	say Dumper(%conf);
 
-	$mech = WWW::Mechanize->new(onerror => undef);
-	$mech->timeout(30);
+	$mech = WWW::Mechanize->new(
+		onerror => undef,
+		timeout => 22,
+		stack_depth => 0,
+		quiet => 0);
+
 	$mech->agent('Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:13.0) Gecko/20100101 Firefox/13.0');
 	next_proxy();
 	

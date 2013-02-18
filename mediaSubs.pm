@@ -59,13 +59,18 @@ sub download_proxies_list
 		`echo 'no_proxy' >.proxies`	
 	}
 }
+sub download_proxies_list_old
+{
+	`rm -f .proxies`;
+	`curl -s "http://vpn.hidemyass.com/vpnconfig/countries.php" >>.proxies`;
+	`sed 's/\$/\\nno_proxy/g' .proxies >/tmp/.proxies.tmp`;  # insert 'no_proxy' after every proxy server because it seems like Google recovers fast
+	`cp /tmp/.proxies.tmp .proxies; rm /tmp/.proxies.tmp`;
+}
 
 sub set_proxy
 {
 	my $country = shift;
-	system("cd ../hma; curl -s 'http://vpn.hidemyass.com/vpnconfig/client_config.php?win=1&loc=$country' | 
-	sed 's/auth-user-pass/auth-user-pass password.txt/g' > client.cfg;
-	echo 'connect-retry-max 2' >> client.cfg");
+	system("cd ../hma; curl -s 'http://vpn.hidemyass.com/vpnconfig/client_config.php?win=1&loc=$country' | sed 's/auth-user-pass/auth-user-pass password.txt/g' > client.cfg");
 ##	system("cd ../hma; curl -s 'http://vpn.hidemyass.com/vpnconfig/client_config.php?win=1&loc=$country' | sed 's/auth-user-pass/auth-user-pass password.txt/g' | sed 's/;user nobody/user gleb/g' > client.cfg");
 
 	my $pid = fork();
@@ -242,7 +247,17 @@ sub retrieve_all_mech
 		$p =~ /^(.*?)(\t|$)/;   # The name is in the first column (maybe the only one but who knows) [*? is a non-greedy match]
 		$p = $1;
 		$p =~ s/\s+/+/g;   # заменить пробелы на плюсы
-		next if not $replace and &$exists_record($p,$lang);  # do not download counts for people already in the people_names table for given language
+		my $er = &$exists_record($p,$lang);
+		if ($er) {
+			print STDERR "", GREEN, "$p from $lang exists in the database --";
+			if ($replace) {
+				say STDERR " flag -r is set, REPLACE", RESET;
+			} else {
+				say STDERR " skip", RESET;
+				next;# do not download counts for people already in the people_names table for given language
+
+			}
+		}
 		my $counter = 0;
 		my $small_count = 0;
 		for my $i (@periods_seq) {

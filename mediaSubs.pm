@@ -59,18 +59,13 @@ sub download_proxies_list
 		`echo 'no_proxy' >.proxies`	
 	}
 }
-sub download_proxies_list_old
-{
-	`rm -f .proxies`;
-	`curl -s "http://vpn.hidemyass.com/vpnconfig/countries.php" >>.proxies`;
-	`sed 's/\$/\\nno_proxy/g' .proxies >/tmp/.proxies.tmp`;  # insert 'no_proxy' after every proxy server because it seems like Google recovers fast
-	`cp /tmp/.proxies.tmp .proxies; rm /tmp/.proxies.tmp`;
-}
 
 sub set_proxy
 {
 	my $country = shift;
-	system("cd ../hma; curl -s 'http://vpn.hidemyass.com/vpnconfig/client_config.php?win=1&loc=$country' | sed 's/auth-user-pass/auth-user-pass password.txt/g' > client.cfg");
+	system("cd ../hma; curl -s 'http://vpn.hidemyass.com/vpnconfig/client_config.php?win=1&loc=$country' | 
+	sed 's/auth-user-pass/auth-user-pass password.txt/g' > client.cfg;
+	echo 'connect-retry-max 2' >> client.cfg");
 ##	system("cd ../hma; curl -s 'http://vpn.hidemyass.com/vpnconfig/client_config.php?win=1&loc=$country' | sed 's/auth-user-pass/auth-user-pass password.txt/g' | sed 's/;user nobody/user gleb/g' > client.cfg");
 
 	my $pid = fork();

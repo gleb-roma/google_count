@@ -70,7 +70,7 @@ sub download_proxies_list_old
 sub set_proxy
 {
 	my $country = shift;
-	system("cd ../hma; curl -s 'http://vpn.hidemyass.com/vpnconfig/client_config.php?win=1&loc=$country' | sed 's/auth-user-pass/auth-user-pass password.txt/g' > client.cfg");
+	system("cd ../hma; curl -s 'http://vpn.hidemyass.com/vpnconfig/client_config.php?win=1&loc=$country' | sed 's/auth-user-pass/auth-user-pass password.txt/g' > client.cfg; echo 'connect-retry-max 2' >>client.cfg");
 ##	system("cd ../hma; curl -s 'http://vpn.hidemyass.com/vpnconfig/client_config.php?win=1&loc=$country' | sed 's/auth-user-pass/auth-user-pass password.txt/g' | sed 's/;user nobody/user gleb/g' > client.cfg");
 
 	my $pid = fork();
@@ -85,9 +85,9 @@ sub set_proxy
 
 sub close_proxies
 {
-#	`pkill openvpn`; # terminate previous connection to proxy
 	`sudo pkill openvpn`; # terminate previous connection to proxy
-	# will ask for the root password even if there is no proxy run. Need to be fixed...
+	# edit /etc/sudoers (sudo visudo) to make 'sudo' without entering the password. Add the line
+	# gleb	ALL= NOPASSWD: MEDIA_CMDS 
 }
 
 sub next_proxy
@@ -170,16 +170,25 @@ sub fetchUrl
 			$att=0;
 		}
 #		print STDERR "", GREEN, "Before mech->get\n", RESET;
-		$mech->get($url);
+		my $timeout = 20;
+		my $timed_out = 0;
+		eval {  # this nasty alarm stuff is because get() cannot do a good timeout and hangs if the server is weird or sophisticated 
+			local $SIG{ALRM} = sub { die "alarm\n" }; # NB: \n required
+			alarm $timeout;
+			$mech->get($url);
+			alarm 0;
+		};
+		if ($@) {
+			die unless $@ eq "alarm\n";
+			say STDERR BOLD BLUE, "Timed out! ($timeout"."s)", RESET;
+			$timed_out = 1;
+		}
 #		print STDERR "", GREEN, "After mech->get\n", RESET;
 		my $err=0;
 		print STDERR color 'bold blue';
-		if ( not $mech->success ) {
+		if ( not $mech->success or $timed_out) {
 			say STDERR "not \$mech->success"; $err++;
 		} else {
-			if ($mech->content=~/Our systems have detected unusual traffic from your computer network/i) {
-				say STDERR "Unusual traffic"; $err++;
-			}
 			if (length($mech->content)<$minfilesize) {
 				say STDERR "Too short file"; $err++;
 				open(FOUT,">t.html") or die "Cannot open t.html";  # for debug

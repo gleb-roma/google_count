@@ -34,7 +34,7 @@ sub format_date   ## in Google News. The reason is that Google expects American 
 	
 	# Specify Bing's (Imil's) not Google's language tags below
 	my @ru  = qw/ru no cz at de fr hr id ch/;
-	my @eur = qw/it ar cl co es dk bo ec mx pe py uy ve pt br ro in gb/; 
+	my @eur = qw/it ar cl co es dk bo ec mx pe py uy ve pt br ro in gb si/; 
 	my @us  = qw/us my/;
 	my @za	= qw/za jp/;
 	my @sv	= qw/se/;

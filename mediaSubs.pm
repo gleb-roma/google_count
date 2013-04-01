@@ -336,6 +336,7 @@ our %tags = (  # Imil (Bing) => Google
 		pt	=> 'pt-PT_pt',
 		br	=> 'pt-BR_br',
 		tr	=> 'tr',
+		si 	=> 'sl',
 
 		fi 	=> 'fi',
 		be 	=> 'fr_be',

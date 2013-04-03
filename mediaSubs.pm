@@ -17,7 +17,7 @@ use Switch;
 use Config::General;
 #use File::Temp qw/ tempfile tempdir /;
 @ISA = qw(Exporter);
-@EXPORT = qw(fetchUrl retrieve_all fetchUrl_mech fetchUrl_mech_1 retrieve_all_mech next_proxy is_under_proxy exists_person connect_to_DB close_proxies %tags);
+@EXPORT = qw(fetchUrl retrieve_all_mech next_proxy is_under_proxy exists_person connect_to_DB close_proxies %tags);
 
 ########### CONSTANTS ##########
 
@@ -58,13 +58,6 @@ sub download_proxies_list
 	} else {
 		`echo 'no_proxy' >.proxies`	
 	}
-}
-sub download_proxies_list_old
-{
-	`rm -f .proxies`;
-	`curl -s "http://vpn.hidemyass.com/vpnconfig/countries.php" >>.proxies`;
-	`sed 's/\$/\\nno_proxy/g' .proxies >/tmp/.proxies.tmp`;  # insert 'no_proxy' after every proxy server because it seems like Google recovers fast
-	`cp /tmp/.proxies.tmp .proxies; rm /tmp/.proxies.tmp`;
 }
 
 sub set_proxy
@@ -343,6 +336,7 @@ our %tags = (  # Imil (Bing) => Google
 		pt	=> 'pt-PT_pt',
 		br	=> 'pt-BR_br',
 		tr	=> 'tr',
+		si 	=> 'sl',
 
 		fi => 'fi',
 		be => 'fr_be',

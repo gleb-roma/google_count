@@ -246,7 +246,7 @@ sub retrieve_all_mech
 		quiet => 0);
 
 	$mech->agent('Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:13.0) Gecko/20100101 Firefox/13.0');
-	next_proxy();
+#	next_proxy();
 	
 	my %data = ();
 	$|++;
@@ -343,6 +343,10 @@ our %tags = (  # Imil (Bing) => Google
 		pt	=> 'pt-PT_pt',
 		br	=> 'pt-BR_br',
 		tr	=> 'tr',
+
+		fi => 'fi',
+		be => 'fr_be',
+		sk => 'sk',
 
 		);
 

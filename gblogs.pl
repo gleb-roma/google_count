@@ -34,7 +34,7 @@ sub format_date   ## in Google Blogs. The reason is that Google expects American
 	
 	# Specify Bing's (Imil's) not Google's language tags below
 	my @ru  = qw/ru no cz at de fr hr id ch/;
-	my @eur = qw/it ar cl co es dk bo ec mx pe py uy ve pt br ro fi be/; 
+	my @eur = qw/it ar cl co es dk bo ec mx pe py uy ve pt br ro fi be sk/; 
 	my @us  = qw/us gb in my/;
 	my @za	= qw/za jp/;
 	my @sv	= qw/se/;
@@ -79,7 +79,7 @@ sub getFreq
 	#EXAMPLE: http://www.google.com/search?hl=es&as_q=Rihanna&lr=lang_es&cr=countryAR&as_qdr=all&as_occt=any&safe=images&tbs=cdr:1,cd_min:5/5/2012,cd_max:12/5/2012&as_rights=
 	print STDERR "$0\t", GREEN, "$l\t", RESET, "$url\n";   # name of the running script + url
 	my $html = fetchUrl($url);
-	print STDERR "", GREEN, "URL fetched\n", RESET;
+#	print STDERR "", GREEN, "URL fetched\n", RESET;
 
 	if (not $html =~ /input\s+id=gbqfq/i) {  # there is a query input field
 		open(FOUT, ">dump.html");

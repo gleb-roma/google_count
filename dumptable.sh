@@ -1,12 +1,14 @@
 #!/bin/bash
 
+
 # DO NOT RUN WHEN NEW ROWS ARE BEING ADDED INTO THE TABLES!!!
 
+# the input argument is a number: 1 Acer, 2 Morgan's, 3 Jing's old, 4 Jing's Sony Vaio
 
 tbl1=gblogs_counts_lr
 tbl2=gnews_counts_lr
 tbl3=people_names
-n="1"
+n=$1
 tbl1new=$tbl1""_$n
 tbl2new=$tbl2""_$n
 tbl3new=$tbl3""_$n

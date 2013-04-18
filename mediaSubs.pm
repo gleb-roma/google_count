@@ -268,9 +268,10 @@ sub retrieve_all_mech
 			$from[1]++; $to[1]++;
 			$from[2]+=1900; $to[2]+=1900;
 			$data{$p}[$i] = &$getFreq($p,@from,@to,$lang);
-#			last PERSON if $data{$p}[$i]<0;
-#			say $data{$p}[$i];
-			die "Couldn't parse the page\n" if $data{$p}[$i]<0;
+			if ($data{$p}[$i] < 0) {
+				warn "Couldn't parse the page: \$data{$p}[$i]<0\n";
+				redo;
+			}
 			print STDERR "$p\tperiod ".($i+1)." from $nperiods\t" . $data{$p}[$i] . "\n";
 			if (++$counter == 4) {   # получили для 4ёх проверочных в начале, середине и конце
 				if ($data{$p}[$periods_seq[0]] +

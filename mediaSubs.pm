@@ -15,6 +15,7 @@ use POSIX qw/mktime ceil/;
 use Fcntl qw(:flock :DEFAULT);
 use Switch;
 use Config::General;
+use DateTime;
 #use File::Temp qw/ tempfile tempdir /;
 @ISA = qw(Exporter);
 @EXPORT = qw(fetchUrl retrieve_all_mech next_proxy is_under_proxy exists_person connect_to_DB close_proxies %tags);
@@ -199,6 +200,20 @@ sub fetchUrl
 	return $mech->content;
 }
 
+sub sleep_in_time()
+{
+	while (1) {
+		my $dt = DateTime->now(time_zone => 'local');
+		my $h = $dt->hour;
+		if ($h > 18 or $h < 2) {
+			say STDERR "", GREEN, "Work time! Tshsh... Sleeping for 15 mins", RESET;
+			sleep 15*60;   # in seconds, 15 mins	
+		} else {
+			last;
+		}
+	} 
+}
+
 sub retrieve_all_mech
 {
 	my ($opt, $tmpfile, $getFreq, $store_in_DB, $exists_record) = @_;
@@ -243,8 +258,9 @@ sub retrieve_all_mech
 	
 	my %data = ();
 	$|++;
-	PERSON:
+	PERSON:  # main loop
 	while (my $p = shift @people) {
+		sleep_in_time();
 		%data = ();      # save memory and increase stability
 		$p =~ /^(.*?)(\t|$)/;   # The name is in the first column (maybe the only one but who knows) [*? is a non-greedy match]
 		$p = $1;

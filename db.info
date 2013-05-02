@@ -19,4 +19,8 @@ SELECT * INTO OUTFILE '/tmp/iii' FROM temp_counts;
 
 TRUNCATE TABLE temp_counts;
 
+select name_id,week,lang,count into outfile '/tmp/bb' from gblogs_counts_lr_all;
+select name_id,week,lang,count into outfile '/tmp/nn' from gnews_counts_lr_all;
+select id,name into outfile '/tmp/pp' from people_names_all;
+
 

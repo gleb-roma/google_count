@@ -15,7 +15,7 @@ use POSIX qw/mktime ceil/;
 use Fcntl qw(:flock :DEFAULT);
 use Switch;
 use Config::General;
-use DateTime;
+#use DateTime;
 #use File::Temp qw/ tempfile tempdir /;
 @ISA = qw(Exporter);
 @EXPORT = qw(fetchUrl retrieve_all_mech next_proxy is_under_proxy exists_person connect_to_DB close_proxies %tags);

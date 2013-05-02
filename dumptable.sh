@@ -5,6 +5,9 @@
 
 # the input argument is a number: 1 Acer, 2 Morgan's, 3 Jing's old, 4 Jing's Sony Vaio
 
+# next step is to add tables to the unified database
+# use addtable.sh
+
 tbl1=gblogs_counts_lr
 tbl2=gnews_counts_lr
 tbl3=people_names
